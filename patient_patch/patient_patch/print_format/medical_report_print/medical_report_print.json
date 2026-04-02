@@ -1,0 +1,11 @@
+{
+  "doctype": "Print Format",
+  "name": "Medical Report Print",
+  "module": "Patient Patch",
+  "custom_format": 1,
+  "doc_type": "Medical Report",
+  "label": "Medical Report Print",
+  "html": "<div style=\"padding:20px;font-family:Arial,sans-serif;font-size:12px;\"><h2 style=\"text-align:center;margin-bottom:16px;\">Medical Report</h2><table style=\"width:100%;border-collapse:collapse;margin-bottom:16px;\"><tr><td style=\"width:20%;font-weight:bold;\">Report No:</td><td style=\"width:30%;\">{{ doc.name }}</td><td style=\"width:20%;font-weight:bold;\">Report Date:</td><td style=\"width:30%;\">{{ frappe.utils.formatdate(doc.report_date) }}</td></tr><tr><td style=\"font-weight:bold;\">Patient:</td><td>{{ doc.patient_name }}</td><td style=\"font-weight:bold;\">Patient ID:</td><td>{{ doc.patient_id }}</td></tr><tr><td style=\"font-weight:bold;\">Age:</td><td>{{ doc.age }}</td><td style=\"font-weight:bold;\">Sex:</td><td>{{ doc.sex }}</td></tr><tr><td style=\"font-weight:bold;\">Doctor:</td><td colspan=\"3\">{{ doc.doctor }}</td></tr></table><h3>Diagnosis / Examination</h3><div style=\"white-space:pre-wrap;\">{{ doc.diagnosis or '' }}</div><h3>Treatment</h3><div style=\"white-space:pre-wrap;\">{{ doc.treatment or '' }}</div><h3>Recommendations</h3><div style=\"white-space:pre-wrap;\">{{ doc.recommendation or '' }}</div></div>",
+  "align_labels_right": 0,
+  "default": 1
+}

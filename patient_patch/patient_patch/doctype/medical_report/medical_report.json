@@ -1,0 +1,115 @@
+{
+  "doctype": "DocType",
+  "name": "Medical Report",
+  "module": "Patient Patch",
+  "custom": 1,
+  "istable": 0,
+  "is_submittable": 1,
+  "sort_field": "modified",
+  "sort_order": "desc",
+  "default_print_format": "Medical Report Print",
+  "autoname": "naming_series:",
+  "title_field": "patient_name",
+  "search_fields": "patient, patient_name, name",
+  "permissions": [
+    {
+      "role": "System Manager",
+      "permlevel": 0,
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "submit": 1,
+      "cancel": 1,
+      "amend": 1,
+      "print": 1
+    },
+    {
+      "role": "Healthcare Practitioner",
+      "permlevel": 0,
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "submit": 1,
+      "print": 1
+    }
+  ],
+  "fields": [
+    {
+      "fieldname": "naming_series",
+      "label": "Series",
+      "fieldtype": "Select",
+      "options": "MR-.YYYY.-.#####",
+      "default": "MR-.YYYY.-.#####",
+      "reqd": 1
+    },
+    {
+      "fieldname": "patient",
+      "label": "Patient",
+      "fieldtype": "Link",
+      "options": "Patient",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "patient_name",
+      "label": "Patient Name",
+      "fieldtype": "Data",
+      "read_only": 1
+    },
+    {
+      "fieldname": "patient_id",
+      "label": "Patient ID",
+      "fieldtype": "Data",
+      "read_only": 1
+    },
+    {
+      "fieldname": "age",
+      "label": "Age",
+      "fieldtype": "Data",
+      "read_only": 1
+    },
+    {
+      "fieldname": "sex",
+      "label": "Sex",
+      "fieldtype": "Data",
+      "read_only": 1
+    },
+    {
+      "fieldname": "report_date",
+      "label": "Report Date",
+      "fieldtype": "Date",
+      "reqd": 1
+    },
+    {
+      "fieldname": "consultation_reference",
+      "label": "Consultation Reference",
+      "fieldtype": "Link",
+      "options": "Patient Encounter",
+      "read_only": 1
+    },
+    {
+      "fieldname": "doctor",
+      "label": "Doctor",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "diagnosis",
+      "label": "Diagnosis / Examination",
+      "fieldtype": "Long Text"
+    },
+    {
+      "fieldname": "treatment",
+      "label": "Treatment",
+      "fieldtype": "Long Text"
+    },
+    {
+      "fieldname": "recommendation",
+      "label": "Recommendations",
+      "fieldtype": "Long Text"
+    }
+  ],
+  "allow_import": 1,
+  "allow_rename": 1,
+  "track_changes": 1
+}
