@@ -69,6 +69,7 @@ function add_create_medical_report_button(frm) {
     if (frm.is_new() || frm.doc.docstatus === 2) return;
 
     frm.remove_custom_button(__('Medical Report'), __('Create'));
+
     frm.add_custom_button(__('Medical Report'), function () {
         open_medical_report_dialog(frm);
     }, __('Create'));
@@ -77,7 +78,9 @@ function add_create_medical_report_button(frm) {
 function open_medical_report_dialog(frm) {
     frappe.call({
         method: 'patient_patch.patient_patch.api.medical_report.get_medical_report_defaults',
-        args: { encounter_name: frm.doc.name },
+        args: {
+            encounter_name: frm.doc.name
+        },
         freeze: true,
         freeze_message: __('Loading Medical Report...'),
         callback: function (r) {
@@ -87,24 +90,99 @@ function open_medical_report_dialog(frm) {
                 title: __('Create Medical Report'),
                 size: 'large',
                 fields: [
-                    { fieldname: 'naming_series', label: 'Series', fieldtype: 'Select', options: 'MR-.YYYY.-.#####', default: r.message.naming_series, reqd: 1 },
-                    { fieldname: 'patient', label: 'Patient', fieldtype: 'Link', options: 'Patient', default: r.message.patient, reqd: 1, read_only: 1 },
-                    { fieldname: 'patient_name', label: 'Patient Name', fieldtype: 'Data', default: r.message.patient_name, read_only: 1 },
-                    { fieldname: 'patient_id', label: 'Patient ID', fieldtype: 'Data', default: r.message.patient_id, read_only: 1 },
-                    { fieldname: 'age', label: 'Age', fieldtype: 'Data', default: r.message.age, read_only: 1 },
-                    { fieldname: 'sex', label: 'Sex', fieldtype: 'Data', default: r.message.sex, read_only: 1 },
-                    { fieldname: 'report_date', label: 'Report Date', fieldtype: 'Date', default: r.message.report_date, reqd: 1 },
-                    { fieldname: 'consultation_reference', label: 'Consultation Reference', fieldtype: 'Link', options: 'Patient Encounter', default: r.message.consultation_reference, read_only: 1 },
-                    { fieldname: 'doctor', label: 'Doctor', fieldtype: 'Data', default: r.message.doctor },
-                    { fieldname: 'diagnosis', label: 'Diagnosis / Examination', fieldtype: 'Long Text', default: r.message.diagnosis },
-                    { fieldname: 'treatment', label: 'Treatment', fieldtype: 'Long Text', default: r.message.treatment },
-                    { fieldname: 'recommendation', label: 'Recommendations', fieldtype: 'Long Text', default: r.message.recommendation }
+                    {
+                        fieldname: 'naming_series',
+                        label: 'Series',
+                        fieldtype: 'Select',
+                        options: 'MR-.YYYY.-.#####',
+                        default: r.message.naming_series,
+                        reqd: 1
+                    },
+                    {
+                        fieldname: 'patient',
+                        label: 'Patient',
+                        fieldtype: 'Link',
+                        options: 'Patient',
+                        default: r.message.patient,
+                        reqd: 1,
+                        read_only: 1
+                    },
+                    {
+                        fieldname: 'patient_name',
+                        label: 'Patient Name',
+                        fieldtype: 'Data',
+                        default: r.message.patient_name,
+                        read_only: 1
+                    },
+                    {
+                        fieldname: 'patient_id',
+                        label: 'Patient ID',
+                        fieldtype: 'Data',
+                        default: r.message.patient_id,
+                        read_only: 1
+                    },
+                    {
+                        fieldname: 'age',
+                        label: 'Age',
+                        fieldtype: 'Data',
+                        default: r.message.age,
+                        read_only: 1
+                    },
+                    {
+                        fieldname: 'sex',
+                        label: 'Sex',
+                        fieldtype: 'Data',
+                        default: r.message.sex,
+                        read_only: 1
+                    },
+                    {
+                        fieldname: 'report_date',
+                        label: 'Report Date',
+                        fieldtype: 'Date',
+                        default: r.message.report_date,
+                        reqd: 1
+                    },
+                    {
+                        fieldname: 'consultation_reference',
+                        label: 'Consultation Reference',
+                        fieldtype: 'Link',
+                        options: 'Patient Encounter',
+                        default: r.message.consultation_reference,
+                        read_only: 1
+                    },
+                    {
+                        fieldname: 'doctor',
+                        label: 'Doctor',
+                        fieldtype: 'Link',
+                        options: 'Healthcare Practitioner',
+                        default: r.message.doctor
+                    },
+                    {
+                        fieldname: 'diagnosis',
+                        label: 'Diagnosis / Examination',
+                        fieldtype: 'Long Text',
+                        default: r.message.diagnosis
+                    },
+                    {
+                        fieldname: 'treatment',
+                        label: 'Treatment',
+                        fieldtype: 'Long Text',
+                        default: r.message.treatment
+                    },
+                    {
+                        fieldname: 'recommendation',
+                        label: 'Recommendations',
+                        fieldtype: 'Long Text',
+                        default: r.message.recommendation
+                    }
                 ],
                 primary_action_label: __('Save and Print'),
                 primary_action(values) {
                     frappe.call({
                         method: 'patient_patch.patient_patch.api.medical_report.create_medical_report',
-                        args: { data: values },
+                        args: {
+                            data: values
+                        },
                         freeze: true,
                         freeze_message: __('Saving Medical Report...'),
                         callback: function (res) {
