@@ -1,11 +1,18 @@
 from __future__ import annotations
 
 import json
+import os
+import time
 from typing import Any, Dict
 
 import frappe
 from frappe import _
 from frappe.utils import getdate, nowdate, today
+
+try:
+    import requests
+except Exception:
+    requests = None
 
 
 def _get_value(doc, fieldnames, default=""):
@@ -62,6 +69,92 @@ def get_medical_report_defaults(encounter_name: str) -> Dict[str, Any]:
         "treatment": "",
         "recommendation": "",
     }
+
+
+@frappe.whitelist()
+def generate_medical_report_recommendation(diagnosis: str = "", treatment: str = "") -> str:
+    diagnosis = _clean_text(diagnosis)
+    treatment = _clean_text(treatment)
+
+    if not diagnosis and not treatment:
+        return "Please enter Diagnosis / Examination or Treatment first."
+
+    api_key = frappe.conf.get("openai_api_key") or os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        frappe.log_error("Missing OpenAI key in site config and env", "Medical Report Recommendation Error")
+        return ""
+
+    if not requests:
+        frappe.log_error("requests package missing", "Medical Report Recommendation Error")
+        return ""
+
+    prompt = f"""
+You are assisting a physician in writing the Recommendations section of a medical report.
+
+Write a short, professional physician recommendation based only on the information below.
+Do not mention AI.
+Do not add unsupported facts.
+Keep it practical and clinically useful.
+
+Diagnosis / Examination:
+{diagnosis or "N/A"}
+
+Treatment:
+{treatment or "N/A"}
+
+Return only the recommendation text.
+""".strip()
+
+    last_error = None
+
+    for attempt in range(3):
+        try:
+            response = requests.post(
+                "https://api.openai.com/v1/responses",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "gpt-5-mini",
+                    "input": prompt,
+                    "max_output_tokens": 500,
+                    "reasoning": {"effort": "minimal"},
+                    "text": {"verbosity": "low"},
+                },
+                timeout=60,
+            )
+
+            if response.status_code == 429:
+                last_error = f"429: {response.text}"
+                time.sleep(2 * (attempt + 1))
+                continue
+
+            if response.status_code >= 400:
+                last_error = f"{response.status_code}: {response.text}"
+                break
+
+            data = response.json()
+
+            output = data.get("output", []) or []
+            for item in output:
+                if item.get("type") != "message":
+                    continue
+                for content in item.get("content", []) or []:
+                    if content.get("type") == "output_text" and content.get("text"):
+                        return content["text"].strip()
+
+            if data.get("status") == "incomplete":
+                last_error = f"Incomplete response: {data.get('incomplete_details')}"
+            else:
+                last_error = f"No output_text found in response: {data}"
+
+        except Exception:
+            last_error = frappe.get_traceback()
+            time.sleep(2 * (attempt + 1))
+
+    frappe.log_error(last_error or "Unknown OpenAI error", "Medical Report Recommendation Error")
+    return ""
 
 
 @frappe.whitelist()

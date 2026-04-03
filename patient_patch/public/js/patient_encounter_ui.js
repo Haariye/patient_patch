@@ -170,6 +170,10 @@ function open_medical_report_dialog(frm) {
                         default: r.message.treatment
                     },
                     {
+                        fieldname: 'recommendation_refresh_html',
+                        fieldtype: 'HTML'
+                    },
+                    {
                         fieldname: 'recommendation',
                         label: 'Recommendations',
                         fieldtype: 'Long Text',
@@ -195,6 +199,8 @@ function open_medical_report_dialog(frm) {
             });
 
             d.show();
+
+            render_recommendation_refresh(d);
         },
         error: function (err) {
             frappe.msgprint({
@@ -204,6 +210,65 @@ function open_medical_report_dialog(frm) {
             });
             console.error(err);
         }
+    });
+}
+
+function render_recommendation_refresh(dialog) {
+    const wrapper = dialog.get_field('recommendation_refresh_html').$wrapper;
+
+	wrapper.html(`
+		<div style="display:flex;justify-content:flex-end;margin:6px 0 10px 0;">
+			<button
+				type="button"
+				class="btn btn-sm"
+				id="refresh-recommendation-btn"
+				title="AI Generate Recommendation"
+				style="
+					background: rgba(255,255,255,0.18);
+					border: 1px solid rgba(255,255,255,0.35);
+					color: #6a1b9a;
+					backdrop-filter: blur(8px);
+					-webkit-backdrop-filter: blur(8px);
+					border-radius: 12px;
+					box-shadow: 0 4px 14px rgba(106,27,154,0.12);
+					font-weight: 600;
+					padding: 6px 14px;
+				"
+			>
+				<span style="margin-right:6px;font-size:14px;">✨</span>AI Generate Recommendation
+			</button>
+		</div>
+	`);
+
+    wrapper.find('#refresh-recommendation-btn').on('click', function () {
+        const diagnosis = dialog.get_value('diagnosis') || '';
+        const treatment = dialog.get_value('treatment') || '';
+
+        frappe.call({
+            method: 'patient_patch.patient_patch.api.medical_report.generate_medical_report_recommendation',
+            args: {
+                diagnosis: diagnosis,
+                treatment: treatment
+            },
+            freeze: true,
+            freeze_message: __('Generating Recommendation...'),
+            callback: function (r) {
+				if (r.message !== undefined) {
+					if (r.message) {
+						dialog.set_value('recommendation', r.message);
+					} else {
+						frappe.msgprint(__('Could not generate recommendation now. Please try again.'));
+					}
+				}
+            },
+            error: function () {
+                frappe.msgprint({
+                    title: __('Recommendation Error'),
+                    indicator: 'red',
+                    message: __('Failed to generate recommendation.')
+                });
+            }
+        });
     });
 }
 
