@@ -158,6 +158,10 @@ function open_medical_report_dialog(frm) {
                         default: r.message.doctor
                     },
                     {
+                        fieldname: 'ai_generate_html',
+                        fieldtype: 'HTML'
+                    },
+                    {
                         fieldname: 'diagnosis',
                         label: 'Diagnosis / Examination',
                         fieldtype: 'Long Text',
@@ -168,10 +172,6 @@ function open_medical_report_dialog(frm) {
                         label: 'Treatment',
                         fieldtype: 'Long Text',
                         default: r.message.treatment
-                    },
-                    {
-                        fieldname: 'recommendation_refresh_html',
-                        fieldtype: 'HTML'
                     },
                     {
                         fieldname: 'recommendation',
@@ -199,8 +199,7 @@ function open_medical_report_dialog(frm) {
             });
 
             d.show();
-
-            render_recommendation_refresh(d);
+            render_ai_generate_button(d, frm);
         },
         error: function (err) {
             frappe.msgprint({
@@ -213,59 +212,60 @@ function open_medical_report_dialog(frm) {
     });
 }
 
-function render_recommendation_refresh(dialog) {
-    const wrapper = dialog.get_field('recommendation_refresh_html').$wrapper;
+function render_ai_generate_button(dialog, frm) {
+    const wrapper = dialog.get_field('ai_generate_html').$wrapper;
 
-	wrapper.html(`
-		<div style="display:flex;justify-content:flex-end;margin:6px 0 10px 0;">
-			<button
-				type="button"
-				class="btn btn-sm"
-				id="refresh-recommendation-btn"
-				title="AI Generate Recommendation"
-				style="
-					background: rgba(255,255,255,0.18);
-					border: 1px solid rgba(255,255,255,0.35);
-					color: #6a1b9a;
-					backdrop-filter: blur(8px);
-					-webkit-backdrop-filter: blur(8px);
-					border-radius: 12px;
-					box-shadow: 0 4px 14px rgba(106,27,154,0.12);
-					font-weight: 600;
-					padding: 6px 14px;
-				"
-			>
-				<span style="margin-right:6px;font-size:14px;">✨</span>AI Generate Recommendation
-			</button>
-		</div>
-	`);
+    wrapper.html(`
+        <div style="display:flex;justify-content:flex-end;margin:6px 0 10px 0;">
+            <button
+                type="button"
+                class="btn btn-sm"
+                id="ai-generate-medical-report-btn"
+                title="AI Generate Clinical Draft"
+                style="
+                    background: rgba(255,255,255,0.18);
+                    border: 1px solid rgba(255,255,255,0.35);
+                    color: #6a1b9a;
+                    backdrop-filter: blur(8px);
+                    -webkit-backdrop-filter: blur(8px);
+                    border-radius: 12px;
+                    box-shadow: 0 4px 14px rgba(106,27,154,0.12);
+                    font-weight: 600;
+                    padding: 6px 14px;
+                "
+            >
+                <span style="margin-right:6px;font-size:14px;">✨</span>AI Generate Clinical Draft
+            </button>
+        </div>
+    `);
 
-    wrapper.find('#refresh-recommendation-btn').on('click', function () {
-        const diagnosis = dialog.get_value('diagnosis') || '';
-        const treatment = dialog.get_value('treatment') || '';
-
+    wrapper.find('#ai-generate-medical-report-btn').on('click', function () {
         frappe.call({
-            method: 'patient_patch.patient_patch.api.medical_report.generate_medical_report_recommendation',
+            method: 'patient_patch.patient_patch.api.medical_report.generate_medical_report_ai_fields',
             args: {
-                diagnosis: diagnosis,
-                treatment: treatment
+                encounter_name: frm.doc.name
             },
             freeze: true,
-            freeze_message: __('Generating Recommendation...'),
+            freeze_message: __('Generating AI Clinical Draft...'),
             callback: function (r) {
-				if (r.message !== undefined) {
-					if (r.message) {
-						dialog.set_value('recommendation', r.message);
-					} else {
-						frappe.msgprint(__('Could not generate recommendation now. Please try again.'));
-					}
-				}
+                if (!r.message) {
+                    frappe.msgprint(__('Could not generate AI draft now. Please try again.'));
+                    return;
+                }
+
+                if (r.message.message) {
+                    frappe.msgprint(__(r.message.message));
+                }
+
+                dialog.set_value('diagnosis', r.message.diagnosis || '');
+                dialog.set_value('treatment', r.message.treatment || '');
+                dialog.set_value('recommendation', r.message.recommendation || '');
             },
             error: function () {
                 frappe.msgprint({
                     title: __('Recommendation Error'),
                     indicator: 'red',
-                    message: __('Failed to generate recommendation.')
+                    message: __('Could not generate AI draft now. Please try again.')
                 });
             }
         });

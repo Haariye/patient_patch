@@ -173,6 +173,17 @@ FIELD_CONFIGS = [
         "hidden": 0,
         "allow_on_submit": 1,
     },
+
+    # Healthcare Settings
+    {
+        "dt": "Healthcare Settings",
+        "fieldname": "custom_openai_api_key",
+        "fieldtype": "Password",
+        "label": "OpenAI API Key",
+        "read_only": 0,
+        "hidden": 0,
+        "allow_on_submit": 0,
+    },
 ]
 
 
@@ -186,7 +197,6 @@ def _upsert_custom_field(cfg):
         old_fieldtype = doc.fieldtype
         new_fieldtype = cfg.get("fieldtype")
 
-        # Never change fieldtype automatically if field already exists
         update_cfg = cfg.copy()
         if old_fieldtype != new_fieldtype:
             update_cfg["fieldtype"] = old_fieldtype
