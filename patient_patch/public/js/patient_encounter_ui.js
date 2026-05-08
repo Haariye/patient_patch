@@ -98,87 +98,98 @@ function open_medical_report_dialog(frm) {
                         default: r.message.naming_series,
                         reqd: 1
                     },
-                    {
-                        fieldname: 'patient',
-                        label: 'Patient',
-                        fieldtype: 'Link',
-                        options: 'Patient',
-                        default: r.message.patient,
-                        reqd: 1,
-                        read_only: 1
-                    },
-                    {
-                        fieldname: 'patient_name',
-                        label: 'Patient Name',
-                        fieldtype: 'Data',
-                        default: r.message.patient_name,
-                        read_only: 1
-                    },
-                    {
-                        fieldname: 'patient_id',
-                        label: 'Patient ID',
-                        fieldtype: 'Data',
-                        default: r.message.patient_id,
-                        read_only: 1
-                    },
-                    {
-                        fieldname: 'age',
-                        label: 'Age',
-                        fieldtype: 'Data',
-                        default: r.message.age,
-                        read_only: 1
-                    },
-                    {
-                        fieldname: 'sex',
-                        label: 'Sex',
-                        fieldtype: 'Data',
-                        default: r.message.sex,
-                        read_only: 1
-                    },
-                    {
-                        fieldname: 'report_date',
-                        label: 'Report Date',
-                        fieldtype: 'Date',
-                        default: r.message.report_date,
-                        reqd: 1
-                    },
-                    {
-                        fieldname: 'consultation_reference',
-                        label: 'Consultation Reference',
-                        fieldtype: 'Link',
-                        options: 'Patient Encounter',
-                        default: r.message.consultation_reference,
-                        read_only: 1
-                    },
-                    {
-                        fieldname: 'doctor',
-                        label: 'Doctor',
-                        fieldtype: 'Link',
-                        options: 'Healthcare Practitioner',
-                        default: r.message.doctor
-                    },
-                    {
-                        fieldname: 'ai_generate_html',
-                        fieldtype: 'HTML'
-                    },
-                    {
-                        fieldname: 'diagnosis',
-                        label: 'Diagnosis / Examination',
-                        fieldtype: 'Long Text',
-                        default: r.message.diagnosis
-                    },
-                    {
-                        fieldname: 'treatment',
-                        label: 'Treatment',
-                        fieldtype: 'Long Text',
-                        default: r.message.treatment
-                    },
-                    {
-                        fieldname: 'recommendation',
-                        label: 'Recommendations',
-                        fieldtype: 'Long Text',
-                        default: r.message.recommendation
-                    }
+					{
+						fieldname: 'patient',
+						label: 'Patient',
+						fieldtype: 'Link',
+						options: 'Patient',
+						default: r.message.patient,
+						reqd: 1,
+						read_only: 1
+					},
+					{
+						fieldname: 'patient_name',
+						label: 'Patient Name',
+						fieldtype: 'Data',
+						default: r.message.patient_name,
+						read_only: 1
+					},
+					{
+						fieldtype: 'Column Break'
+					},
+					{
+						fieldname: 'patient_id',
+						label: 'Patient ID',
+						fieldtype: 'Data',
+						default: r.message.patient_id,
+						read_only: 1
+					},
+					{
+						fieldname: 'age',
+						label: 'Age',
+						fieldtype: 'Data',
+						default: r.message.age,
+						read_only: 1
+					},
+
+					{
+						fieldname: 'sex',
+						label: 'Sex',
+						fieldtype: 'Data',
+						default: r.message.sex,
+						read_only: 1
+					},
+					{
+						fieldtype: 'Column Break'
+					},
+					{
+						fieldname: 'consultation_reference',
+						label: 'Consultation Reference',
+						fieldtype: 'Link',
+						options: 'Patient Encounter',
+						default: r.message.consultation_reference,
+						read_only: 1
+					},
+					{
+						fieldname: 'doctor',
+						label: 'Doctor',
+						fieldtype: 'Link',
+						options: 'Healthcare Practitioner',
+						default: r.message.doctor
+					},
+					{
+						fieldname: 'report_date',
+						label: 'Report Date',
+						fieldtype: 'Date',
+						default: r.message.report_date,
+						reqd: 1
+					},
+
+					{
+						fieldtype: 'Section Break'
+					},
+					{
+						fieldname: 'ai_generate_html',
+						fieldtype: 'HTML'
+					},
+					{
+						fieldname: 'diagnosis',
+						label: 'Diagnosis / Examination',
+						fieldtype: 'Long Text',
+						default: r.message.diagnosis
+					},
+					{
+						fieldname: 'treatment',
+						label: 'Treatment',
+						fieldtype: 'Long Text',
+						default: r.message.treatment
+					},
+					{
+						fieldname: 'recommendation',
+						label: 'Recommendations',
+						fieldtype: 'Long Text',
+						default: r.message.recommendation
+					}
                 ],
                 primary_action_label: __('Save and Print'),
                 primary_action(values) {
