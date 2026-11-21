@@ -38,6 +38,45 @@ def on_cancel_patient_encounter(doc, method=None):
             frappe.log_error(frappe.get_traceback(), "Prescription Invoice Cancel Notice")
 
 
+def before_validate_sales_invoice(doc, method=None):
+    """Prescription POS draft: keep payment equal to the invoice total."""
+    if doc.docstatus != 0 or doc.get("is_return"):
+        return
+    if not cint(getattr(doc, "custom_is_prescription_invoice", 0)) or not cint(doc.get("is_pos")):
+        return
+    if not doc.get("payments"):
+        return
+
+    doc.calculate_taxes_and_totals()
+    total = (flt(doc.get("rounded_total")) or flt(doc.get("grand_total"))) - flt(doc.get("write_off_amount"))
+    row = next((p for p in doc.payments if cint(p.default)), doc.payments[0])
+    others = sum(flt(p.amount) for p in doc.payments if p is not row)
+    row.amount = max(0, total - others)
+
+
+def before_submit_sales_invoice(doc, method=None):
+    """Allow pharmacy to bill more than prescribed: raise Medication Request dispensable qty if needed."""
+    if not cint(getattr(doc, "custom_is_prescription_invoice", 0)):
+        return
+
+    qty_by_mr = {}
+    for item in doc.get("items") or []:
+        if item.get("reference_dt") == "Medication Request" and item.get("reference_dn"):
+            qty_by_mr[item.reference_dn] = qty_by_mr.get(item.reference_dn, 0) + flt(item.qty)
+
+    for mr, qty in qty_by_mr.items():
+        mr_vals = frappe.db.get_value(
+            "Medication Request", mr, ["qty_invoiced", "total_dispensable_quantity"], as_dict=True
+        )
+        if not mr_vals:
+            continue
+        needed = flt(mr_vals.qty_invoiced) + qty
+        if needed > flt(mr_vals.total_dispensable_quantity):
+            frappe.db.set_value(
+                "Medication Request", mr, "total_dispensable_quantity", needed, update_modified=False
+            )
+
+
 def on_submit_sales_invoice(doc, method=None):
     """
     Mark source Drug Prescription rows as billed after invoice submit.
@@ -239,6 +278,7 @@ def create_draft_sales_invoice_from_encounter(
 
     invoice.set_missing_values()
     invoice.calculate_taxes_and_totals()
+    set_default_pos_payment(invoice)
     invoice.insert(ignore_permissions=True)
     return invoice
 
@@ -259,8 +299,49 @@ def update_existing_draft_invoice(invoice_doc, encounter_doc, customer: str, pre
 
     invoice_doc.set_missing_values()
     invoice_doc.calculate_taxes_and_totals()
+    set_default_pos_payment(invoice_doc)
     invoice_doc.save(ignore_permissions=True)
     return invoice_doc
+
+
+def set_default_pos_payment(invoice_doc):
+    """Fill the default POS payment row with the amount to pay (same as the UI does on is_pos toggle)."""
+    if not cint(invoice_doc.get("is_pos")) or not invoice_doc.get("payments"):
+        return
+    if any(flt(p.amount) for p in invoice_doc.payments):
+        return
+
+    total = flt(invoice_doc.get("rounded_total")) or flt(invoice_doc.get("grand_total"))
+    total -= flt(invoice_doc.get("write_off_amount"))
+    if total <= 0:
+        return
+
+    row = next((p for p in invoice_doc.payments if cint(p.default)), invoice_doc.payments[0])
+    row.amount = total
+    invoice_doc.calculate_taxes_and_totals()
+
+
+def fix_existing_draft_pos_payments(dry_run=1):
+    """bench --site <site> execute patient_patch.patient_patch.prescription_invoice.fix_existing_draft_pos_payments --kwargs "{'dry_run': 0}" """
+    names = frappe.get_all(
+        "Sales Invoice",
+        filters={"docstatus": 0, "is_pos": 1, "custom_is_prescription_invoice": 1},
+        pluck="name",
+    )
+    fixed = []
+    for name in names:
+        inv = frappe.get_doc("Sales Invoice", name)
+        if not inv.payments or any(flt(p.amount) for p in inv.payments):
+            continue
+        set_default_pos_payment(inv)
+        if not any(flt(p.amount) for p in inv.payments):
+            continue
+        fixed.append(name)
+        if not cint(dry_run):
+            inv.save(ignore_permissions=True)
+    if not cint(dry_run):
+        frappe.db.commit()
+    print(("DRY RUN " if cint(dry_run) else "") + f"{frappe.local.site}: {len(fixed)} draft(s) {fixed}")
 
 
 def append_invoice_items(invoice_doc, encounter_doc, prescription_rows: List[Dict]):

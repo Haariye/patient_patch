@@ -19,6 +19,8 @@ doc_events = {
         "on_cancel": "patient_patch.patient_patch.prescription_invoice.on_cancel_patient_encounter",
     },
     "Sales Invoice": {
+        "before_validate": "patient_patch.patient_patch.prescription_invoice.before_validate_sales_invoice",
+        "before_submit": "patient_patch.patient_patch.prescription_invoice.before_submit_sales_invoice",
         "on_submit": "patient_patch.patient_patch.prescription_invoice.on_submit_sales_invoice",
     },
 }
